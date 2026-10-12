@@ -1,0 +1,41 @@
+[
+  {
+    "model": "catalog.product",
+    "pk": 5,
+    "fields": {
+      "name": "Смартфон",
+      "description": "Флагман",
+      "image": "",
+      "category": 4,
+      "price": "79990.00",
+      "created_at": "2026-09-24T14:13:51.056746+00:00",
+      "updated_at": "2026-09-24T14:13:51.056764+00:00"
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 6,
+    "fields": {
+      "name": "Ноутбук",
+      "description": "Для работы",
+      "image": "",
+      "category": 4,
+      "price": "120000.00",
+      "created_at": "2026-09-24T14:14:09.915779+00:00",
+      "updated_at": "2026-09-24T14:14:09.915791+00:00"
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 7,
+    "fields": {
+      "name": "Мастер и Маргарита",
+      "description": "Булгаков",
+      "image": "",
+      "category": 6,
+      "price": "800.00",
+      "created_at": "2026-09-24T14:14:30.884535+00:00",
+      "updated_at": "2026-09-24T14:14:30.884547+00:00"
+    }
+  }
+]

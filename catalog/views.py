@@ -1,43 +1,50 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.shortcuts import redirect
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_protect
-from django.core.paginator import Paginator
+from django.views.generic import ListView, DetailView, CreateView, TemplateView, UpdateView, DeleteView
 
 from .models import Product
 from .forms import ProductForm
 
 
-def home(request):
-    """Главная: список товаров с пагинацией."""
-    products = Product.objects.all()
-    paginator = Paginator(products, 4)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'catalog/home.html', {'page_obj': page_obj})
+class ProductListView(ListView):
+    model = Product
+    template_name = 'catalog/home.html'
+    context_object_name = 'page_obj'
+    paginate_by = 4
 
 
-def product_detail(request, pk):
-    """Детальная страница товара."""
-    product = get_object_or_404(Product, pk=pk)
-    return render(request, 'catalog/product_detail.html', {'product': product})
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'catalog/product_detail.html'
+    context_object_name = 'product'
 
 
-def product_create(request):
-    """Добавление нового товара."""
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save()
-            messages.success(request, f'Товар «{product.name}» добавлен.')
-            return redirect('catalog:home')
-    else:
-        form = ProductForm()
-    return render(request, 'catalog/product_form.html', {'form': form})
+class ProductCreateView(CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'catalog/product_form.html'
+    success_url = reverse_lazy('catalog:home')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Товар «{self.object.name}» добавлен.')
+        return response
 
 
-@csrf_protect
-def contacts(request):
-    """Контакты + форма обратной связи."""
-    if request.method == 'POST':
+class ContactsView(TemplateView):
+    template_name = 'catalog/contacts.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'country': 'USA',
+            'inn': '91-1144442',
+            'address': 'Redmond, WA, 98052-6399',
+        })
+        return context
+
+    def post(self, request, *args, **kwargs):
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         message = request.POST.get('message', '').strip()
@@ -48,9 +55,27 @@ def contacts(request):
             print(f"Новое сообщение от {name} ({phone}): {message}")
             messages.success(request, f'Спасибо, {name}! Ваше сообщение отправлено.')
 
-    context = {
-        'country': 'USA',
-        'inn': '91-1144442',
-        'address': 'Redmond, WA, 98052-6399',
-    }
-    return render(request, 'catalog/contacts.html', context)
+        return redirect('catalog:contacts')
+
+class ProductUpdateView(UpdateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'catalog/product_form.html'  # используем тот же шаблон, что и для создания
+
+    def get_success_url(self):
+        # Возвращаем пользователя на страницу отредактированного товара
+        messages.success(self.request, f'Товар «{self.object.name}» успешно обновлён.')
+        return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.pk})
+
+
+class ProductDeleteView(DeleteView):
+    model = Product
+    template_name = 'catalog/product_confirm_delete.html'
+    success_url = reverse_lazy('catalog:home')
+
+    def form_valid(self, form):
+        # Сохраняем название до удаления, чтобы вывести его в сообщении
+        product_name = self.object.name
+        response = super().form_valid(form)
+        messages.success(self.request, f'Товар «{product_name}» удалён.')
+        return response

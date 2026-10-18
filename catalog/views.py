@@ -1,76 +1,52 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
+from django.core.paginator import Paginator
+
+from .models import Product
+from .forms import ProductForm
 
 
 def home(request):
-    """Контроллер для главной страницы"""
-    context = {
-        'products': [
-            {
-                'name': 'Удобный сервис рассылок',
-                'price': '140',
-                'description': 'Неограниченная лицензия, поддержка, установка на сервер, получение обновлений',
-                'features': [
-                    'Неограниченная лицензия',
-                    'Поддержка',
-                    'Установка на сервер',
-                    'Получение обновлений'
-                ]
-            },
-            {
-                'name': 'Телеграм бот для бизнеса',
-                'price': '200',
-                'description': 'Автоматизация продаж, уведомления, интеграция с CRM',
-                'features': [
-                    'Автоматизация продаж',
-                    'Уведомления',
-                    'Интеграция с CRM',
-                    'Аналитика'
-                ]
-            },
-            {
-                'name': 'Веб-приложение для управления задачами',
-                'price': '300',
-                'description': 'Управление проектами, задачи, сроки, отчеты',
-                'features': [
-                    'Управление проектами',
-                    'Задачи и сроки',
-                    'Отчеты',
-                    'Командная работа'
-                ]
-            },
-            {
-                'name': 'Микросервис для обработки платежей',
-                'price': '250',
-                'description': 'Безопасные платежи, интеграция с платежными системами',
-                'features': [
-                    'Безопасные платежи',
-                    'Интеграция с платежными системами',
-                    'Автоматические уведомления',
-                    'История транзакций'
-                ]
-            }
-        ]
-    }
-    return render(request, 'catalog/home.html', context)
+    """Главная: список товаров с пагинацией."""
+    products = Product.objects.all()
+    paginator = Paginator(products, 4)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'catalog/home.html', {'page_obj': page_obj})
+
+
+def product_detail(request, pk):
+    """Детальная страница товара."""
+    product = get_object_or_404(Product, pk=pk)
+    return render(request, 'catalog/product_detail.html', {'product': product})
+
+
+def product_create(request):
+    """Добавление нового товара."""
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
+            messages.success(request, f'Товар «{product.name}» добавлен.')
+            return redirect('catalog:home')
+    else:
+        form = ProductForm()
+    return render(request, 'catalog/product_form.html', {'form': form})
 
 
 @csrf_protect
 def contacts(request):
-    """Контроллер для страницы контактов с формой обратной связи"""
+    """Контакты + форма обратной связи."""
     if request.method == 'POST':
-        name = request.POST.get('name', '')
-        phone = request.POST.get('phone', '')
-        message = request.POST.get('message', '')
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        message = request.POST.get('message', '').strip()
 
-        # В реальном проекте здесь была бы отправка email или сохранение в БД
-        print(f"Новое сообщение от {name} (Телефон: {phone}): {message}")
-
-        # Добавляем сообщение об успешной отправке
-        messages.success(request, f'Спасибо, {name}! Ваше сообщение успешно отправлено.')
-
-        # Очищаем форму - возвращаем пустую страницу с сообщением
+        if not (name and phone and message):
+            messages.error(request, 'Заполните все поля формы.')
+        else:
+            print(f"Новое сообщение от {name} ({phone}): {message}")
+            messages.success(request, f'Спасибо, {name}! Ваше сообщение отправлено.')
 
     context = {
         'country': 'USA',

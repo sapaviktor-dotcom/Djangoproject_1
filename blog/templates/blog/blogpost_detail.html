@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} | Блог{% endblock %}
+{% block header %}{{ post.title }}{% endblock %}
+{% block subheader %}Опубликовано: {{ post.created_at|date:"d E Y в H:i" }}{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <!-- Превью -->
+      {% if post.preview %}
+        <div class="mb-4 text-center">
+          <img src="{{ post.preview.url }}" class="img-fluid rounded shadow-sm" alt="{{ post.title }}">
+        </div>
+      {% endif %}
+
+      <!-- Счетчик просмотров -->
+      <p class="text-muted text-end mb-3">
+        <span class="badge bg-secondary">👁 Просмотров: {{ post.views_count }}</span>
+      </p>
+
+      <!-- Основной текст (linebreaks сохраняет абзацы) -->
+      <div class="fs-5 lh-lg mb-5">
+        {{ post.content|linebreaks }}
+      </div>
+
+      <hr>
+
+      <!-- Навигация и управление -->
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="{% url 'blog:blogpost_list' %}" class="btn btn-outline-secondary">
+          &larr; Назад ко всем статьям
+        </a>
+
+        <div>
+          <a href="{% url 'blog:blogpost_update' post.pk %}" class="btn btn-warning btn-sm">Редактировать</a>
+          <a href="{% url 'blog:blogpost_delete' post.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

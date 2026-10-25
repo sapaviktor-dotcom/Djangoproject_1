@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактирование{% else %}Новая статья{% endif %}{% endblock %}
+{% block header %}{% if object %}Редактирование статьи{% else %}Создание статьи{% endif %}{% endblock %}
+{% block subheader %}Заполните форму ниже{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
+        {% csrf_token %}
+        
+        <!-- Рендеринг формы (выведет все поля) -->
+        {{ form.as_p }}
+        
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">
+            {% if object %}Сохранить изменения{% else %}Опубликовать{% endif %}
+          </button>
+          <a href="{% url 'blog:blogpost_list' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -23,6 +23,8 @@
                 <p class="text-start m-3">{{ product.description|truncatechars:100 }}</p>
                 <a href="{% url 'catalog:product_detail' product.pk %}"
                    class="btn btn-lg btn-block btn-outline-primary">Подробнее</a>
+                <a href="{% url 'catalog:product_update' product.pk %}">[Ред.]</a>
+                <a href="{% url 'catalog:product_delete' product.pk %}">[X]</a>
             </div>
         </div>
     </div>

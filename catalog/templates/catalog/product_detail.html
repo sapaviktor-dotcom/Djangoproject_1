@@ -19,8 +19,8 @@
         <h4 class="text-primary">$ {{ product.price }}</h4>
         <p>{{ product.description }}</p>
         <a href="{% url 'catalog:home' %}" class="btn btn-outline-secondary">← Назад в каталог</a>
-        <a href="{% url 'catalog:product_update' product.pk %}">Редактировать</a> |
-        <a href="{% url 'catalog:product_delete' product.pk %}" style="color: red;">Удалить</a>
+        <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-primary">Редактировать</a>
+        <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger">Удалить</a>
     </div>
 </div>
 {% endblock %}

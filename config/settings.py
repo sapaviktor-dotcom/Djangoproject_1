@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     'catalog',
     'blog',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -141,3 +142,16 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # ← испр
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = 'users.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'Sapa.Viktor.Nik@yandex.ru'
+EMAIL_HOST_PASSWORD = 'rgdxedjqksklcqiq'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+LOGIN_URL = '/users/login/'
+LOGIN_REDIRECT_URL = '/'

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в систему</title>
+</head>
+<body>
+    <h2>Вход</h2>
+
+    <!-- Вывод сообщений об ошибках (например, "Неверный email или пароль") -->
+    {% if messages %}
+        {% for message in messages %}
+            <div style="color: red;">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>
+            <label for="email">Email:</label><br>
+            <input type="email" name="email" id="email" required>
+        </p>
+
+        <p>
+            <label for="password">Пароль:</label><br>
+            <input type="password" name="password" id="password" required>
+        </p>
+
+        <button type="submit">Войти</button>
+    </form>
+
+    <p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+</body>
+</html>

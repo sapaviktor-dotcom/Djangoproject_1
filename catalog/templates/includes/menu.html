@@ -1,7 +1,9 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" href="/">Skystore</a>
+
     <div class="collapse navbar-collapse">
+      <!-- Ссылки (Каталог, Добавить товар, Блог, Контакты) -->
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
           <a class="nav-link" href="{% url 'catalog:home' %}">Каталог</a>
@@ -16,6 +18,30 @@
           <a class="nav-link" href="{% url 'catalog:contacts' %}">Контакты</a>
         </li>
       </ul>
+
+      <!-- БЛОК С КНОПКАМИ АВТОРИЗАЦИИ (выровнен по правому краю) -->
+      <div class="d-flex align-items-center">
+        {% if user.is_authenticated %}
+            <!-- Если пользователь вошел: ссылка на профиль -->
+            <span class="text-light me-3">
+                Привет,
+                <a href="{% url 'profile' %}" class="text-light text-decoration-none">
+                    <strong>{{ user.username }}</strong>
+                </a>!
+            </span>
+
+            <!-- Выход обязательно через POST-запрос -->
+            <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+            </form>
+        {% else %}
+            <!-- Если пользователь аноним -->
+            <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">Войти</a>
+            <a href="{% url 'register' %}" class="btn btn-success btn-sm">Регистрация</a>
+        {% endif %}
+      </div>
+
     </div>
   </div>
 </nav>

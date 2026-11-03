@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль</title>
+</head>
+<body>
+    <h2>Редактирование профиля</h2>
+
+    <!-- Вывод сообщений об успехе -->
+    {% if messages %}
+        {% for message in messages %}
+            <div style="color: green;">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <p><a href="{% url 'catalog:home' %}">Вернуться на главную</a></p>
+</body>
+</html>

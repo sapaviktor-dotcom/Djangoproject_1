@@ -22,8 +22,13 @@
       <!-- БЛОК С КНОПКАМИ АВТОРИЗАЦИИ (выровнен по правому краю) -->
       <div class="d-flex align-items-center">
         {% if user.is_authenticated %}
-            <!-- Если пользователь вошел -->
-            <span class="text-light me-3">Привет, <strong>{{ user.username }}</strong>!</span>
+            <!-- Если пользователь вошел: ссылка на профиль -->
+            <span class="text-light me-3">
+                Привет,
+                <a href="{% url 'profile' %}" class="text-light text-decoration-none">
+                    <strong>{{ user.username }}</strong>
+                </a>!
+            </span>
 
             <!-- Выход обязательно через POST-запрос -->
             <form action="{% url 'logout' %}" method="post" style="display: inline;">

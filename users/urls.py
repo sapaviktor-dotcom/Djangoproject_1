@@ -11,5 +11,7 @@ urlpatterns = [
 
     # Маршрут для выхода (логаут) - используем встроенный класс Django
     path('logout/', LogoutView.as_view(next_page='catalog:home'), name='logout'),
+
+    path("profile/", views.profile_view, name="profile"),
 ]
 

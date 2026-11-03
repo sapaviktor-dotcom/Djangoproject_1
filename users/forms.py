@@ -23,3 +23,8 @@ class CustomUserCreationForm(UserCreationForm):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("Это имя пользователя уже занято.")
         return username
+
+class CustomUserChangeForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("username", "email", "avatar", "phone", "country")

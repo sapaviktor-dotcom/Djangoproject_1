@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 # --- Регистрация ---
 def register_view(request):
@@ -43,3 +44,20 @@ def login_view(request):
             messages.error(request, 'Неверный email или пароль')
 
     return render(request, 'users/login.html')
+
+@login_required
+def profile_view(request):
+    if request.method == "POST":
+        form = CustomUserChangeForm(
+            request.POST,
+            request.FILES,
+            instance=request.user,
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Профиль успешно обновлён.")
+            return redirect("profile")
+    else:
+        form = CustomUserChangeForm(instance=request.user)
+
+    return render(request, "users/profile.html", {"form": form})

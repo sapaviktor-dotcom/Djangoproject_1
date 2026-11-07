@@ -7,7 +7,11 @@
 {% block content %}
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Последние записи</h2>
-    <a href="{% url 'blog:blogpost_create' %}" class="btn btn-success">+ Написать статью</a>
+
+    <!-- Показываем кнопку только тем, у кого есть право на добавление статьи -->
+    {% if perms.blog.add_blogpost %}
+        <a href="{% url 'blog:blogpost_create' %}" class="btn btn-success">+ Написать статью</a>
+    {% endif %}
   </div>
 
   <div class="row">

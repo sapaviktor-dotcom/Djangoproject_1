@@ -1,9 +1,10 @@
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404  
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, TemplateView, UpdateView, DeleteView
-
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View  # <-- Добавили View
+from django.http import HttpResponseForbidden
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 
 from .models import Product
 from .forms import ProductForm
@@ -29,6 +30,7 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('catalog:home')
 
     def form_valid(self, form):
+        form.instance.owner = self.request.user
         response = super().form_valid(form)
         messages.success(self.request, f'Товар «{self.object.name}» добавлен.')
         return response
@@ -69,6 +71,14 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, f'Товар «{self.object.name}» успешно обновлён.')
         return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.pk})
 
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        # Владелец или модератор
+        if request.user == product.owner or request.user.has_perm('catalog.can_unpublish_product'):
+            return super().dispatch(request, *args, **kwargs)
+        return HttpResponseForbidden("У вас нет прав на изменение этого продукта.")
+
+
 
 class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
@@ -81,3 +91,25 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
         response = super().form_valid(form)
         messages.success(self.request, f'Товар «{product_name}» удалён.')
         return response
+
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        # Разрешаем, если владелец или модератор
+        if request.user == product.owner or request.user.has_perm('catalog.can_unpublish_product'):
+            return super().dispatch(request, *args, **kwargs)
+        return HttpResponseForbidden("У вас нет прав на удаление этого продукта.")
+
+
+class ProductUnpublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'catalog.can_unpublish_product'
+    raise_exception = True  # Выдаст 403, если прав нет
+
+    def post(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+
+        # Меняем статус на "Снят с публикации"
+        product.status = 'unpublished'
+        product.save()
+
+        messages.success(request, f'Товар «{product.name}» снят с публикации.')
+        return redirect('catalog:product_detail', pk=product.pk)

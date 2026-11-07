@@ -18,9 +18,33 @@
         <h3>{{ product.name }}</h3>
         <h4 class="text-primary">$ {{ product.price }}</h4>
         <p>{{ product.description }}</p>
+
+        <!-- Бейдж статуса (необязательно, но полезно для проверки) -->
+        <p>
+            {% if product.status == 'published' %}
+                <span class="badge bg-success">Опубликован</span>
+            {% elif product.status == 'draft' %}
+                <span class="badge bg-secondary">Черновик</span>
+            {% else %}
+                <span class="badge bg-warning">Снят с публикации</span>
+            {% endif %}
+        </p>
+
         <a href="{% url 'catalog:home' %}" class="btn btn-outline-secondary">← Назад в каталог</a>
-        <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-primary">Редактировать</a>
-        <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger">Удалить</a>
+
+        <!-- Кнопки показываются владельцу или модератору -->
+        {% if user == product.owner or perms.catalog.can_unpublish_product %}
+            <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-primary">Редактировать</a>
+            <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger">Удалить</a>
+        {% endif %}
+
+        <!-- Дополнительно: кнопка снятия с публикации для модератора -->
+        {% if perms.catalog.can_unpublish_product and product.status == 'published' %}
+            <form action="{% url 'catalog:product_unpublish' product.pk %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Снять с публикации</button>
+            </form>
+        {% endif %}
     </div>
 </div>
-{% endblock %}
+{% endblock %} 

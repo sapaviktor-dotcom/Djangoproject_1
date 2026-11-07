@@ -33,8 +33,12 @@
         </a>
 
         <div>
-          <a href="{% url 'blog:blogpost_update' post.pk %}" class="btn btn-warning btn-sm">Редактировать</a>
-          <a href="{% url 'blog:blogpost_delete' post.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+            {% if perms.blog.change_blogpost %}
+              <a href="{% url 'blog:blogpost_update' post.pk %}" class="btn btn-primary">Редактировать</a>
+            {% endif %}
+            {% if perms.blog.delete_blogpost %}
+              <a href="{% url 'blog:blogpost_delete' post.pk %}" class="btn btn-danger">Удалить</a>
+            {% endif %}
         </div>
       </div>
     </div>

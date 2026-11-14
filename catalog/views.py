@@ -1,12 +1,14 @@
 from django.urls import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, TemplateView, UpdateView, DeleteView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-
-from .models import Product
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from .services import get_products_by_category
+from .models import Product, Category
 from .forms import ProductForm
 
 
@@ -22,6 +24,9 @@ class ProductDetailView(LoginRequiredMixin, DetailView):
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
 
+    @method_decorator(cache_page(60 * 15))  # Кешируем на 15 минут
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
     model = Product
@@ -111,3 +116,12 @@ class ProductUnpublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
         product.save()
         messages.success(request, f'Товар «{product.name}» снят с публикации.')
         return redirect('catalog:product_detail', pk=product.pk)
+
+
+def category_products_view(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    products = get_products_by_category(category_id)
+    return render(request, 'catalog/category_products.html', {
+        'category': category,
+        'products': products,
+    })

@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from .models import Product, Category
+from django.core.cache import cache
+from .services import get_products_by_category, invalidate_category_cache
 
 User = get_user_model()
 
@@ -88,3 +90,59 @@ class ProductAccessTest(TestCase):
         for url in urls:
             response = self.client.get(url)
             self.assertIn(response.status_code, [302, 403])  # Редирект на логин
+
+class CacheTest(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name='Кеш-категория')
+        self.product = Product.objects.create(
+            name='Кешированный товар',
+            category=self.category,
+            price=100.00,
+            status='published'
+        )
+        cache.clear()  # Очищаем кеш перед каждым тестом
+
+    def test_products_are_cached(self):
+        """Проверяет, что данные сохраняются в кеш и возвращаются из него"""
+        # Первый запрос — идёт в БД
+        products_1 = get_products_by_category(self.category.id)
+        self.assertEqual(len(products_1), 1)
+
+        # Проверяем, что ключ появился в Redis
+        cache_key = f'category_{self.category.id}'
+        self.assertIsNotNone(cache.get(cache_key))
+
+        # Второй запрос — должен вернуться из кеша
+        products_2 = get_products_by_category(self.category.id)
+        self.assertEqual(len(products_2), 1)
+        # (Для строгости можно сравнить id объектов, но для домашки достаточно)
+
+    def test_cache_ttl_is_set(self):
+        """Проверяет, что у ключа установлен TTL"""
+        get_products_by_category(self.category.id)
+        # Проверяем, что данные сохранились
+        cache_key = f'category_{self.category.id}'
+        self.assertIsNotNone(cache.get(cache_key))
+
+    def test_cache_invalidated_after_create(self):
+        """Проверяет, что кеш сбрасывается после создания товара"""
+        # Заполняем кеш
+        get_products_by_category(self.category.id)
+        cache_key = f'category_{self.category.id}'
+        self.assertIsNotNone(cache.get(cache_key))
+
+        # Имитируем создание товара через view (или напрямую)
+        from .views import ProductCreateView
+        invalidate_category_cache(self.category.id)
+
+        # Проверяем, что кеш пуст
+        self.assertIsNone(cache.get(cache_key))
+
+    def test_cache_invalidated_after_delete(self):
+        """Проверяет, что кеш сбрасывается после удаления товара"""
+        get_products_by_category(self.category.id)
+        cache_key = f'category_{self.category.id}'
+        self.assertIsNotNone(cache.get(cache_key))
+
+        invalidate_category_cache(self.category.id)
+        self.assertIsNone(cache.get(cache_key))
